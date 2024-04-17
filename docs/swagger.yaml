@@ -63,4 +63,31 @@ paths:
           schema:
             $ref: '#/definitions/app.Response'
       summary: Get multiple article tags
+  /rpi/execute:
+    get:
+      parameters:
+      - description: Command to execute
+        in: query
+        name: command
+        required: true
+        type: string
+      - description: Secret
+        in: query
+        name: secret
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: 执行树莓派命令
+      tags:
+      - rpi
 swagger: "2.0"

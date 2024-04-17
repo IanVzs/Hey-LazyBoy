@@ -35,6 +35,10 @@ func InitRouter() *gin.Engine {
 	/*curl --include --no-buffer --header "Connection: Upgrade" --header "Upgrade: websocket" --header "Host: 127.0.0.1:8000"  --header "Sec-WebSocket-Key: zVM4LLeZBgoAzNyTtkEjxGVbUEk="  --header "Sec-WebSocket-Version: 13" http://127.0.0.1:8000/ws*/
 	r.GET("/ws", WsEcho)
 	r.GET("/ws_chat", Chat)
+	rpiGroup := r.Group("/rpi")
+	{
+		rpiGroup.GET("/execute", api.RPiCMDExecute)
+	}
 	r.POST("/v1/petrichor/user/login", user.Login)
 	userGroup := r.Group("/v1/petrichor/user")
 	{

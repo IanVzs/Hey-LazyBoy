@@ -89,6 +89,47 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/rpi/execute": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rpi"
+                ],
+                "summary": "执行树莓派命令",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Command to execute",
+                        "name": "command",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Secret",
+                        "name": "secret",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
