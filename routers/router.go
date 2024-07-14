@@ -14,6 +14,7 @@ import (
 	"github.com/IanVzs/Snowflakes/pkgs/setting"
 	"github.com/IanVzs/Snowflakes/routers/api"
 	test "github.com/IanVzs/Snowflakes/routers/api/test"
+	"github.com/IanVzs/Snowflakes/services/pts"
 	"github.com/IanVzs/Snowflakes/services/user"
 )
 
@@ -52,6 +53,10 @@ func InitRouter() *gin.Engine {
 		//获取标签列表
 		apiStage.GET("/tags", test.GoTest)
 		apiStage.POST("/qa", api.QA)
+	}
+	apiptsGroup := r.Group("/v1/pts")
+	{
+		apiptsGroup.POST("/run", pts.Run)
 	}
 
 	return r

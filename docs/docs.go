@@ -130,6 +130,44 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/pts/run": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "PTS Run"
+                ],
+                "parameters": [
+                    {
+                        "description": "Question to be answered",
+                        "name": "question",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PtsParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -149,6 +187,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PtsParams": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "secondcount": {
+                    "type": "integer"
+                },
+                "url": {
                     "type": "string"
                 }
             }
