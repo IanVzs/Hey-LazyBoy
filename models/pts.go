@@ -5,10 +5,11 @@ type PtsParams struct {
 	Count       int    `json:"count"`
 	SecondCount int    `json:"secondcount"`
 	Duration    int    `json:"duration"`
+	Proxyurl    string `json:"proxyurl"`
 }
 
 type RespPts struct {
-	Total       int `json:"total"`
-	Cost        int `json:"cost"`
-	SecondCount int `json:"secondcount"`
+	Total     int         `json:"total"`
+	Cost      int         `json:"cost"`
+	StatusMap map[int]int `json:"statusmap"`
 }

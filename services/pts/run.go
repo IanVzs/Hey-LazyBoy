@@ -14,9 +14,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func requestUrl(url_str string, statusCodeMap *sync.Map, wg *sync.WaitGroup) {
+func requestUrl(url_str string, proxyurl string, statusCodeMap *sync.Map) {
 	// 创建一个请求对象
-	wg.Done()
 	logging.Infof("开始发送请求")
 	req, err := http.NewRequest("GET", url_str, nil)
 	if err != nil {
@@ -31,7 +30,8 @@ func requestUrl(url_str string, statusCodeMap *sync.Map, wg *sync.WaitGroup) {
 	req.Header.Set("Accept-Encoding", "gzip, deflate, br, zstd")
 	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("Priority", "u=1")
-	proxyURL, err := url.Parse("http://127.0.0.1:7890")
+	logging.Info(proxyurl)
+	proxyURL, err := url.Parse(proxyurl)
 	if err != nil {
 		return
 	}
@@ -59,16 +59,20 @@ func requestUrl(url_str string, statusCodeMap *sync.Map, wg *sync.WaitGroup) {
 		return
 	}
 
-	count, ok := (*statusCodeMap).Load(resp.StatusCode)
+	count, ok := statusCodeMap.Load(resp.StatusCode)
 	if ok {
-		(*statusCodeMap).Store(resp.StatusCode, count.(int)+1)
-		logging.Infof("url返回码: %d", resp.StatusCode)
+		statusCodeMap.Store(resp.StatusCode, count.(int)+1)
+		logging.Infof("url返回码: %d, 返回值: %+v", resp.StatusCode, string(body))
 	} else {
-		(*statusCodeMap).Store(resp.StatusCode, 1)
-		logging.Errorf("url返回码: %d, 返回信息: %+v", resp.StatusCode, string(body))
+		statusCodeMap.Store(resp.StatusCode, 1)
+		logging.Infof("url返回码: %d, 返回信息: %+v", resp.StatusCode, string(body))
 	}
 }
 
+// @Tags PTS Page
+// @测试接口质量前端页面
+// @Produce html
+// @Router /v1/pts/index [get]
 func OpenHTML(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{"title": "pts"})
 }
@@ -85,7 +89,7 @@ func Run(c *gin.Context) {
 	var sm sync.Map
 	var wg sync.WaitGroup
 	var pts_params models.PtsParams
-
+	statusMap := make(map[int]int)
 	appG := app.Gin{C: c}
 	if err := appG.C.ShouldBindJSON(&pts_params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -93,19 +97,31 @@ func Run(c *gin.Context) {
 	}
 	logging.Info("params: %+v", pts_params)
 	start := time.Now().Unix()
+	_start := time.Now().Unix()
 	count := 0
 	for i := 1; i <= pts_params.Count; i++ {
 		count = count + 1
-		go requestUrl(pts_params.Url, &sm, &wg)
 		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			requestUrl(pts_params.Url, pts_params.Proxyurl, &sm)
+		}()
 		_now := time.Now().Unix()
-		delta := _now - start
+		delta := _now - _start
 		if delta <= 1 && count >= pts_params.SecondCount {
 			time.Sleep(time.Duration(1-delta) * time.Second)
 			logging.Debugf("Sleep: %d", 1-delta)
-			start = time.Now().Unix()
+			_start = time.Now().Unix()
+			count = 0
 		}
 	}
 	wg.Wait()
-	appG.Response(200, e.SUCCESS, models.RespPts{Total: 0, Cost: 0, SecondCount: 0})
+	done := time.Now().Unix()
+	sm.Range(func(key, value interface{}) bool {
+		logging.Debugf("status map k: %d", key.(int))
+		statusMap[key.(int)] = value.(int)
+		return true
+	})
+	logging.Infof("status map is: %+v", statusMap)
+	appG.Response(200, e.SUCCESS, models.RespPts{Total: 0, Cost: int(done) - int(start), StatusMap: statusMap})
 }
