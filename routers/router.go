@@ -55,8 +55,10 @@ func InitRouter() *gin.Engine {
 		apiStage.POST("/qa", api.QA)
 	}
 	apiptsGroup := r.Group("/v1/pts")
+	r.LoadHTMLGlob("templates/pts/*")
 	{
 		apiptsGroup.POST("/run", pts.Run)
+		apiptsGroup.GET("/index", pts.OpenHTML)
 	}
 
 	return r

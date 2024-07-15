@@ -2,16 +2,20 @@ package test
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/unknwon/com"
 
 	"github.com/IanVzs/Snowflakes/pkgs/app"
 	"github.com/IanVzs/Snowflakes/pkgs/e"
+	"github.com/IanVzs/Snowflakes/pkgs/logging"
 	"github.com/IanVzs/Snowflakes/pkgs/setting"
 	"github.com/IanVzs/Snowflakes/pkgs/util"
 	"github.com/IanVzs/Snowflakes/services/test_service"
 )
+
+var Count int = 0
 
 // @Summary Get multiple article tags
 // @Produce  json
@@ -19,7 +23,7 @@ import (
 // @Param state query int false "State"
 // @Success 200 {object} app.Response
 // @Failure 500 {object} app.Response
-// @Router /api/v1/tags [get]
+// @Router /api/test/get [get]
 func GoTest(c *gin.Context) {
 	appG := app.Gin{C: c}
 	name := c.Query("name")
@@ -41,6 +45,9 @@ func GoTest(c *gin.Context) {
 	}
 
 	count := len(tests)
+	time.Sleep(time.Second * 1)
+	Count += 1
+	logging.Info("Count: ", Count)
 
 	appG.Response(http.StatusOK, e.SUCCESS, map[string]interface{}{
 		"lists": tests,

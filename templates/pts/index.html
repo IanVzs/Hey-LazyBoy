@@ -1,0 +1,195 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Parameter Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: calc(20% - 10px);
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: calc(100% - 10px);
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+    </style>
+    <script>
+        function formatUrlParams() {
+            // 获取输入框中的 URL
+            let urlInput = document.getElementById('url');
+            let url = urlInput.value.trim();
+
+            // 检查 URL 是否为空
+            if (url === '') {
+                alert('Please enter a valid URL');
+                return;
+            }
+
+            try {
+                // 创建 URL 对象
+                let parsedUrl = new URL(url);
+
+                // 获取 URLSearchParams 对象
+                let searchParams = parsedUrl.searchParams;
+
+                // 清空旧的表格内容
+                let paramsTableBody = document.getElementById('params-table-body');
+                paramsTableBody.innerHTML = '';
+
+                // 遍历 URL 参数，构建表格
+                searchParams.forEach((value, key) => {
+                    let row = paramsTableBody.insertRow();
+                    let cell1 = row.insertCell(0);
+                    let cell2 = row.insertCell(1);
+                    cell1.textContent = key;
+                    cell2.innerHTML = `<input type="text" value="${value}" onchange="updateParam('${key}', this.value)">`;
+                });
+
+                // 设置默认值或更新整数参数的输入框
+                document.getElementById('count').value = 0;
+                document.getElementById('secondcount').value = 0;
+                document.getElementById('duration').value = 0;
+            } catch (error) {
+                alert('Invalid URL format');
+                console.error(error);
+            }
+        }
+
+        function updateParam(key, value) {
+            // 更新 URL 参数
+            let urlInput = document.getElementById('url');
+            let url = urlInput.value.trim();
+
+            try {
+                let parsedUrl = new URL(url);
+                parsedUrl.searchParams.set(key, value);
+                urlInput.value = parsedUrl.toString();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function sendPostRequest() {
+            // 获取输入框中的 URL
+            let url = document.getElementById('url').value;
+
+            // 获取整数参数的值
+            let count = parseInt(document.getElementById('count').value);
+            let secondcount = parseInt(document.getElementById('secondcount').value);
+            let duration = parseInt(document.getElementById('duration').value);
+
+            // 如果 URL 不为空
+            if (url.trim() !== '') {
+                // 构建要发送的 JSON 数据
+                let data = {
+                    url: url,
+                    count: count,
+                    secondcount: secondcount,
+                    duration: duration
+                };
+
+                // 发送 POST 请求
+                fetch('/v1/pts/run', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 处理返回的数据
+                    console.log('Response:', data);
+                    // 这里可以根据返回的数据做进一步处理，比如显示提示信息或者跳转页面
+                    alert('POST request sent successfully!');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to send POST request');
+                });
+            } else {
+                alert('Please enter a valid URL');
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>URL Parameter Editor</h1>
+
+        <label for="count">count:</label> <input type="number" id="count" name="count" value="0">
+        
+        <label for="secondcount">secondcount:</label> <input type="number" id="secondcount" name="secondcount" value="0">
+        
+        <label for="duration">duration:</label> <input type="number" id="duration" name="duration" value="0">
+        <br>
+        <label for="url">Enter URL:</label>
+        <input type="text" id="url" name="url" placeholder="https://example.com?param1=value1&param2=value2">
+        
+        <button onclick="formatUrlParams()">Format URL Parameters</button>
+        <button onclick="sendPostRequest()">Send POST Request</button>
+        
+        <table id="params-table">
+            <thead>
+                <tr>
+                    <th>键</th>
+                    <th>值</th>
+                </tr>
+            </thead>
+            <tbody id="params-table-body">
+                <!-- 这里会动态生成 URL 参数的表格内容 -->
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

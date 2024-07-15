@@ -29,6 +29,8 @@ clean:
 run:
 	$(GOBUILD) -o $(BINARY_NAME) -v
 	./$(BINARY_NAME)
+swagger:
+	swag init
 deps:
 	$(GOGET) github.com/go-redis/redis/v8
 	$(GOGET) github.com/natefinch/lumberjack

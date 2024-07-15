@@ -15,6 +15,42 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/test/get": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get multiple article tags",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "State",
+                        "name": "state",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/qa": {
             "post": {
                 "consumes": [
@@ -36,42 +72,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.LLMRequest"
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/tags": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Get multiple article tags",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Name",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "State",
-                        "name": "state",
-                        "in": "query"
                     }
                 ],
                 "responses": {

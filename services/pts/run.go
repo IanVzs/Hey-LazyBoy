@@ -69,6 +69,10 @@ func requestUrl(url_str string, statusCodeMap *sync.Map, wg *sync.WaitGroup) {
 	}
 }
 
+func OpenHTML(c *gin.Context) {
+	c.HTML(http.StatusOK, "index.html", gin.H{"title": "pts"})
+}
+
 // @Tags PTS Run
 // @测试接口质量
 // @Accept  json
@@ -103,5 +107,5 @@ func Run(c *gin.Context) {
 		}
 	}
 	wg.Wait()
-	appG.Response(200, e.SUCCESS, models.RespPts{Total: 0, During: 0, SecondCount: 0})
+	appG.Response(200, e.SUCCESS, models.RespPts{Total: 0, Cost: 0, SecondCount: 0})
 }
