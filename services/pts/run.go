@@ -11,6 +11,7 @@ import (
 	"github.com/IanVzs/Snowflakes/pkgs/app"
 	"github.com/IanVzs/Snowflakes/pkgs/e"
 	"github.com/IanVzs/Snowflakes/pkgs/logging"
+	"github.com/IanVzs/Snowflakes/pkgs/setting"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,14 +24,13 @@ func requestUrl(url_str string, proxyurl string, statusCodeMap *sync.Map) {
 	}
 	// 设置请求头
 	// 这里可以设置任意需要的头部信息，比如Content-Type, Authorization等
-	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0")
-	req.Header.Set("Host", "app.appsflyer.com")
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
-	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2")
-	req.Header.Set("Accept-Encoding", "gzip, deflate, br, zstd")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Priority", "u=1")
-	logging.Info(proxyurl)
+	// req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0")
+	// req.Header.Set("Host", "app.appsflyer.com")
+	// req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+	// req.Header.Set("Accept-Language", "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2")
+	// req.Header.Set("Accept-Encoding", "gzip, deflate, br, zstd")
+	// req.Header.Set("Connection", "keep-alive")
+	// req.Header.Set("Priority", "u=1")
 	proxyURL, err := url.Parse(proxyurl)
 	if err != nil {
 		return
@@ -46,16 +46,18 @@ func requestUrl(url_str string, proxyurl string, statusCodeMap *sync.Map) {
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
+		Timeout: time.Second * 10,
 	}
 
 	resp, err := client.Do(req)
 	// resp, err := http.Get(url)
 	if err != nil {
-		logging.Errorf("url请求失败: url: %s, 错误: %v", url_str, err)
+		logging.Errorf("url请求失败, 错误: %+v", err)
 		return
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		logging.Errorf("url获取Body失败, 错误: %+v", err)
 		return
 	}
 
@@ -78,7 +80,7 @@ func OpenHTML(c *gin.Context) {
 }
 
 // @Tags PTS Run
-// @测试接口质量
+// @测试接口质量 `注意: 因为在conf/app.ini中设置了超时时间,有需要去修改ReadTimeout设置`
 // @Accept  json
 // @Produce json
 // @Param question body models.PtsParams true "Question to be answered"
@@ -96,6 +98,10 @@ func Run(c *gin.Context) {
 		return
 	}
 	logging.Info("params: %+v", pts_params)
+	if pts_params.Duration > 0 && pts_params.Duration >= int(setting.ServerSetting.ReadTimeout) || pts_params.Count*pts_params.SecondCount >= int(setting.ServerSetting.ReadTimeout) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "duration or count too large"})
+		return
+	}
 	start := time.Now().Unix()
 	_start := time.Now().Unix()
 	count := 0
