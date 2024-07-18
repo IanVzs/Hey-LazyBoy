@@ -3,15 +3,28 @@ definitions:
     properties:
       code:
         type: integer
-      data:
-        type: object
+      data: {}
       msg:
+        type: string
+    type: object
+  models.LLMRequest:
+    properties:
+      content:
+        type: string
+    type: object
+  models.PtsParams:
+    properties:
+      count:
+        type: integer
+      secondcount:
+        type: integer
+      url:
         type: string
     type: object
 info:
   contact: {}
 paths:
-  /api/v1/tags:
+  /api/test/get:
     get:
       parameters:
       - description: Name
@@ -34,4 +47,80 @@ paths:
           schema:
             $ref: '#/definitions/app.Response'
       summary: Get multiple article tags
+  /api/v1/qa:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Question to be answered
+        in: body
+        name: question
+        required: true
+        schema:
+          $ref: '#/definitions/models.LLMRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Answer a question
+      tags:
+      - QA
+  /rpi/execute:
+    get:
+      parameters:
+      - description: Command to execute
+        in: query
+        name: command
+        required: true
+        type: string
+      - description: Secret
+        in: query
+        name: secret
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: 执行树莓派命令
+      tags:
+      - rpi
+  /v1/pts/run:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Question to be answered
+        in: body
+        name: question
+        required: true
+        schema:
+          $ref: '#/definitions/models.PtsParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/app.Response'
+      tags:
+      - PTS Run
 swagger: "2.0"

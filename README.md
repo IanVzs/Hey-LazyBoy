@@ -12,5 +12,13 @@
 ...
 
 ## Swagger
+### 老版本Golang
+```bash
 go get -u github.com/swaggo/swag/cmd/swag
 swag init
+```
+### 1.18后的Golang
+```bash
+go install github.com/swaggo/swag/cmd/swag@latest
+swag init
+```

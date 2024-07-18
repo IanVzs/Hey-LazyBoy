@@ -4,14 +4,18 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	_ "github.com/IanVzs/Snowflakes/docs"
+	"github.com/IanVzs/Snowflakes/middleware/cors"
+	"github.com/IanVzs/Snowflakes/middleware/jwt"
 	"github.com/IanVzs/Snowflakes/pkgs/logging"
 	"github.com/IanVzs/Snowflakes/pkgs/setting"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
-
+	"github.com/IanVzs/Snowflakes/routers/api"
 	test "github.com/IanVzs/Snowflakes/routers/api/test"
+	"github.com/IanVzs/Snowflakes/services/pts"
+	"github.com/IanVzs/Snowflakes/services/user"
 )
 
 // InitRouter initialize routing information
@@ -25,17 +29,36 @@ func InitRouter() *gin.Engine {
 		r.Use(logging.Ginzap(logging.AppLogger, time.RFC3339, true))
 		r.Use(logging.RecoveryWithZap(logging.AppLogger, true))
 	}
+	r.Use(cors.Cors())
 
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	// test ws can use
 	/*curl --include --no-buffer --header "Connection: Upgrade" --header "Upgrade: websocket" --header "Host: 127.0.0.1:8000"  --header "Sec-WebSocket-Key: zVM4LLeZBgoAzNyTtkEjxGVbUEk="  --header "Sec-WebSocket-Version: 13" http://127.0.0.1:8000/ws*/
 	r.GET("/ws", WsEcho)
 	r.GET("/ws_chat", Chat)
-	apiv1 := r.Group("/api/test")
-	// apiv1.Use(jwt.JWT())
+	rpiGroup := r.Group("/rpi")
+	{
+		rpiGroup.GET("/execute", api.RPiCMDExecute)
+	}
+	r.POST("/v1/petrichor/user/login", user.Login)
+	userGroup := r.Group("/v1/petrichor/user")
+	{
+		userGroup.Use(jwt.JWT())
+		userGroup.GET("/info", user.Info)
+	}
+
+	apiStage := r.Group("/api/v1")
+	// apiStage.Use(jwt.JWT())
 	{
 		//获取标签列表
-		apiv1.GET("/get", test.GoTest)
+		apiStage.GET("/tags", test.GoTest)
+		apiStage.POST("/qa", api.QA)
+	}
+	apiptsGroup := r.Group("/v1/pts")
+	r.LoadHTMLGlob("templates/pts/*")
+	{
+		apiptsGroup.POST("/run", pts.Run)
+		apiptsGroup.GET("/index", pts.OpenHTML)
 	}
 
 	return r

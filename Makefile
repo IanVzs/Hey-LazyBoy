@@ -18,6 +18,10 @@ lint:
 	golint ./...
 tool:
 	$(GoTool) vet . |& grep -v vendor; true
+swag:
+	swag init
+install_swag:
+	go install github.com/swaggo/swag/cmd/swag@latest
 clean:
 	$(GOCLEAN) -i .
 	rm -f $(BINARY_NAME)
@@ -25,6 +29,8 @@ clean:
 run:
 	$(GOBUILD) -o $(BINARY_NAME) -v
 	./$(BINARY_NAME)
+swagger:
+	swag init
 deps:
 	$(GOGET) github.com/go-redis/redis/v8
 	$(GOGET) github.com/natefinch/lumberjack
